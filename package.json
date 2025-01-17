@@ -1,0 +1,24 @@
+{
+  "name": "@pch-private/pch-fees-common-types-lib",
+  "version": "0.1.0",
+  "description": "Fees Commo Types Library",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/The-Peoples-Clearinghouse/pch-fees-common-types-library.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/The-Peoples-Clearinghouse/pch-fees-common-types-library/issues"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

@@ -1,0 +1,95 @@
+name: Publish to Artifact Registry on PR Close
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  Check-status-pull-request:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Message of aprove
+        run: echo "Pull Request Aproved, Initialize new version"
+
+  Type-pull-request:
+    runs-on: ubuntu-latest
+    needs: Check-status-pull-request
+    if: contains(github.event.pull_request.title, 'fix:')
+    steps:
+      - name: Checks if is a Patch Version
+        run: echo "New Patch Version Aproved"
+
+  Publish-NPM-Package:
+    runs-on: ubuntu-latest
+    needs: Type-pull-request
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Fetch all tags
+        run: git fetch --tags --force
+
+      - name: Get Latest Tag and increment version
+        run: |
+          LATEST_TAG=$(git tag --sort=-creatordate | head -n 1)
+          
+          echo "Última etiqueta: $LATEST_TAG"
+          MAJOR=$(echo "$LATEST_TAG" | cut -d. -f1)
+          MINOR=$(echo "$LATEST_TAG" | cut -d. -f2)
+          PATCH=$(echo "$LATEST_TAG" | cut -d. -f3)
+
+          NEW_PATCH=$((PATCH + 1))
+          NEW_TAG="${MAJOR}.${MINOR}.${NEW_PATCH}"
+          echo "Nueva versión: $NEW_TAG"
+
+          echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_JSON_AUTH }}
+
+      - name: Configure NPM for Artifact Registry
+        run: |
+          TOKEN=$(gcloud auth print-access-token)
+          echo "//us-central1-npm.pkg.dev/pch-main/pch-npm-private/:_authToken=${TOKEN}" > ~/.npmrc
+          echo "@pch-private:registry=https://us-central1-npm.pkg.dev/pch-main/pch-npm-private/" >> ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Package
+        run: npm run build
+
+      - name: Bump package version to latest tag
+        run: |
+          npm version ${NEW_TAG} --force
+          git push origin main --tags
+
+
+      - name: Publish Package to Artifact Registry
+        run: |
+          npm publish --registry=https://us-central1-npm.pkg.dev/pch-main/pch-npm-private/
+      
+      /////////////////////////// Create GitHub Release (ERROR) ///////////////////////////
+      
+      - name: Create GitHub Release
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/releases \
+            -d '{
+              "tag_name": "'${NEW_TAG}'",
+              "name": "Release '${NEW_TAG}'",
+              "body": "Automated release for version '${NEW_TAG}'",
+              "draft": false,
+              "prerelease": false
+            }'

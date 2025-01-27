@@ -32,7 +32,7 @@ export const FeeType = {
 export type FeeType = keyof typeof FeeType;
 
 export const TransferType = {
-    REMMITANCE: 'REMMITANCE',
+    REMMITANCE: 'REMITTANCE',
     DOMESTIC: 'DOMESTIC',
 } as const;
 export type TransferType = keyof typeof TransferType;
@@ -102,3 +102,14 @@ export type BadTransferMessage = {
     ignoredReason: string | null;
     messageData: object;
 };
+
+export const Granularity = {
+    hour: '1h',
+    day: '1D',
+    week: '7D',
+    month: '1M',
+    quarter: '3M',
+    semester: '6M',
+    year: '1Y',
+} as const;
+export type Granularity = keyof typeof Granularity;

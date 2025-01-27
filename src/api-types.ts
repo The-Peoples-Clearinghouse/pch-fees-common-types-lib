@@ -20,6 +20,7 @@ export type FinancialEntity = {
     financialEntityName: string;
     financialEntityId: string;
     financialEntityType: FinancialEntityType;
+    active?: boolean;
 };
 
 export const FeeType = {

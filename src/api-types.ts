@@ -32,7 +32,7 @@ export const FeeType = {
 export type FeeType = keyof typeof FeeType;
 
 export const TransferType = {
-    REMMITANCE: 'REMITTANCE',
+    REMITTANCE: 'REMITTANCE',
     DOMESTIC: 'DOMESTIC',
 } as const;
 export type TransferType = keyof typeof TransferType;

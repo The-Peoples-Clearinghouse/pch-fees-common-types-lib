@@ -1,25 +1,23 @@
-name: Publish to Artifact Registry on PR Close
+name: Push NPM Packages Input Versions 
 
 on:
-  pull_request:
-    types: [closed]
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      Type:
+        description: 'NPM Tag Type'
+        required: true
+        type: choice
+        options:
+          - Minor
+          - Major
 
 jobs:
-
-  Type-pull-request:
+   Status-Input-Tag:
+    name: Publish NPM Package
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.title, 'fix:')
-    steps:
-      - name: Checks if is a Patch Version
-        run: echo "New Patch Version Aproved"
-
-  Update-Tag:
-    runs-on: ubuntu-latest
-    needs: Type-pull-request
     outputs:
-      npm_tag: ${{ steps.get_new_patch.outputs.new_tag }}
+      docker_tag: ${{ steps.validate_tag.outputs.new_tag }}
+      flag: ${{ steps.validate_tag.outputs.status_flag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,13 +32,15 @@ jobs:
           token: ${{ secrets.ORG_PAT }}
           path: shared-actions
 
-      - name: Generate New Patch
-        id: get_new_patch
-        uses: ./shared-actions/actions/Patch-Tag
+      - name: Input Tag Version
+        id: validate_tag
+        uses: ./shared-actions/actions/Input-Tag
+        with:
+          Type: ${{ inputs.Type }}
 
   Push-New-Tag:
     runs-on: ubuntu-latest
-    needs: Update-Tag
+    needs: Status-Input-Tag
       - name: Checkout repository
         uses: actions/checkout@v4
       
@@ -54,5 +54,5 @@ jobs:
       - name: Push New Tag
         uses: ./shared-actions/actions/Npm-Push
         with:
-            New_Tag: ${{ needs.Update-Tag.outputs.npm_tag }}
+            New_Tag: ${{ needs.Status-Input-Tag.outputs.npm_tag }}
             gcp_credentials: ${{ secrets.GCP_JSON_AUTH }}

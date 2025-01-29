@@ -29,3 +29,6 @@ yarn-error.log*
 /.yarn
 
 .cache
+
+#shared-actions
+/shared-actions

@@ -48,7 +48,7 @@ export type CalculationType = keyof typeof CalculationType;
 export type FeeDefinition = {
     _id?: string;
     financialEntityId: string;
-    active: boolean;
+    active?: boolean;
     transferType: TransferType;
     feeType: FeeType;
     calculationType: CalculationType;
@@ -100,7 +100,7 @@ export type BadTransferMessage = {
     failureDescription: string;
     state: StateOfFailedProcessingMessage;
     ignoredReason: string | null;
-    messageData: object;
+    messageData: TransferCompletedMessage;
 };
 
 export const Granularity = {

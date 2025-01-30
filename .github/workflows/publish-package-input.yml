@@ -56,3 +56,4 @@ jobs:
         with:
             New_Tag: ${{ needs.Status-Input-Tag.outputs.npm_tag }}
             gcp_credentials: ${{ secrets.GCP_JSON_AUTH }}
+            Git_Token: ${{ secrets.ORG_PAT }}
